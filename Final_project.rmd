@@ -94,6 +94,8 @@ logical_cols <- c(
 
 hospital[logical_cols] <- lapply(hospital[logical_cols], as.logical)
 
+hospital <- hospital |> mutate(`Week Ending` = as.Date(`Week Ending`))
+
 ```
 
 ```{r}
@@ -111,6 +113,7 @@ write_csv(hospital, "Data/cleaned_Hospital_Coverage.csv")
 #Use Cleaned Dataset
 hospital <- read_csv("Data/cleaned_Hospital_Coverage.csv")
 colnames(hospital)
+str(hospital)
 ```
 
 ```{r}
@@ -133,6 +136,54 @@ hospital |>
   ) +
   theme_minimal()
 
+hospital %>%
+  mutate(
+    covid_total = total_adult_patients_hospitalized_confirmed_covid +
+                  total_pediatric_patients_hospitalized_confirmed_covid
+  ) %>%
+  ggplot(aes(x = State, y = covid_total)) +
+  geom_boxplot(fill = "skyblue") +
+  coord_flip() +
+  labs(
+    title = "Boxplot of COVID Hospitalizations by State",
+    x = "State",
+    y = "COVID Hospitalizations"
+  ) +
+  theme_minimal()
+
+
 ```
 
+```{r}
+hospital %>%
+  group_by(State) %>%
+  summarize(icu_used = sum(icu_beds_used, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(State, icu_used), y = icu_used)) +
+  geom_col(fill = "firebrick") +
+  coord_flip() +
+  labs(
+    title = "ICU Beds Used by State (Week Ending 2024-04-20)",
+    x = "State",
+    y = "ICU Beds Used"
+  ) +
+  theme_minimal()
+
+```
+
+
+```{r}
+hospital %>%
+  group_by(State) %>%
+  summarize(avg_n95 = mean(n95_respirators_days_available, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(State, avg_n95), y = avg_n95)) +
+  geom_col(fill = "purple") +
+  coord_flip() +
+  labs(
+    title = "Average N95 Respirator Supply (Days) by State",
+    x = "State",
+    y = "Days of N95 Supply"
+  ) +
+  theme_minimal()
+
+```
 
